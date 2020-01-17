@@ -1,0 +1,19 @@
+{
+  "name": "duneserver",
+  "version": "1.0.0",
+  "description": "Realtime server monitoring app with Angular 4 & NodeJS",
+  "main": "index.js",
+  "scripts": {
+    "start": "forever start index.js",
+    "dev": "nodemon index.js",
+    "test": "echo 'Error: no test specified'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "os-monitor": "~1.0.5",
+    "nodemon": "~1.11.0",
+    "socket.io": "~2.0.3"
+  }
+}
