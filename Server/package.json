@@ -14,6 +14,6 @@
   "dependencies": {
     "os-monitor": "~1.0.5",
     "nodemon": "~1.11.0",
-    "socket.io": "~2.0.3"
+    "socket.io": "~2.5.0"
   }
 }
