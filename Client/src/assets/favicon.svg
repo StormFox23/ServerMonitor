@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Server Monitor">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#0ea5e9"/>
+    </linearGradient>
+    <linearGradient id="pulse" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <rect x="11" y="13" width="42" height="30" rx="8" fill="#0b172f" opacity="0.9" stroke="#cbd5e1" stroke-opacity="0.25" stroke-width="2"/>
+  <rect x="14" y="16" width="36" height="24" rx="6" fill="#111827" opacity="0.85"/>
+  <path d="M14 43h36" stroke="#cbd5e1" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round"/>
+  <rect x="28" y="44" width="8" height="4" rx="2" fill="#e2e8f0" opacity="0.8"/>
+  <path d="M16 29h6l2-6 4 14 4-10 3 7 4-4h9" fill="none" stroke="url(#pulse)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="20" cy="52" r="2" fill="#cbd5e1" opacity="0.85"/>
+  <circle cx="32" cy="52" r="2" fill="#cbd5e1" opacity="0.85"/>
+  <circle cx="44" cy="52" r="2" fill="#cbd5e1" opacity="0.85"/>
+  <circle cx="50" cy="14" r="4" fill="#22d3ee" opacity="0.9"/>
+  <circle cx="12" cy="12" r="6" fill="#a78bfa" opacity="0.3"/>
+</svg>
