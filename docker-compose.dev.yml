@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Angular 21 Client Service (Development)
+  client-dev:
+    build:
+      context: ./Client
+      dockerfile: Dockerfile.dev
+    ports:
+      - "4200:4200"
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+    volumes:
+      - ./Client:/app
+      - /app/node_modules
+    networks:
+      - servermonitor-network
+    depends_on:
+      - server-dev
+    profiles:
+      - dev
+
+  # Node.js Server Service (Development)
+  server-dev:
+    build:
+      context: ./Server
+      dockerfile: Dockerfile.dev
+    ports:
+      - "9500:9500"
+    environment:
+      - NODE_ENV=development
+      - PORT=9500
+    restart: unless-stopped
+    volumes:
+      - ./Server:/app
+      - /app/node_modules
+    networks:
+      - servermonitor-network
+    profiles:
+      - dev
+
+networks:
+  servermonitor-network:
+    driver: bridge

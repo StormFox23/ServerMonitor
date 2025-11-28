@@ -1,15 +1,267 @@
-<div class="container">
-  <h1>Dune Server Monitor</h1>
-  <div style="background:#eee" class="">
-      <div class="col-md-4">
-          <h4>Memory</h4>
-          <canvas id="mChart" width="400" height="400"></canvas>
+<div class="container" [class.dark-theme]="isDarkTheme">
+  <header class="app-header">
+    <div class="header-left">
+      <h1>{{ title }}</h1>
+      <div class="subtitle">Real-time server monitoring dashboard</div>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle" (click)="toggleTheme()" title="Toggle Theme">
+        <span class="theme-icon">{{ isDarkTheme ? '☀️' : '🌙' }}</span>
       </div>
+      <div class="connection-status">
+        <span class="status-indicator" [ngClass]="{
+          'connected': serverStatus === 'connected',
+          'disconnected': serverStatus === 'disconnected',
+          'connecting': serverStatus === 'connecting'
+        }"></span>
+        <span class="status-text">{{ serverStatus }}</span>
+      </div>
+    </div>
+  </header>
 
-      <div class="col-md-4">
-          <h4>Cpu load average</h4>
-          <canvas id="cChart" width="400" height="400"></canvas>
-      </div>
+  <div class="last-updated" *ngIf="lastUpdated">
+    Last update: {{ lastUpdated | date:'mediumTime' }}
   </div>
+
+  <div class="system-info" *ngIf="cpuType || noOfCpu">
+    <div class="info-item">
+      <strong>System:</strong> {{ cpuType }}
+    </div>
+    <div class="info-item">
+      <strong>Cores:</strong> {{ noOfCpu }}
+    </div>
+    <div class="info-item">
+      <strong>OS:</strong> {{ lastConnectionInfo?.osInfo?.distro || '—' }} {{ lastConnectionInfo?.osInfo?.release || '' }}
+    </div>
+  </div>
+
+  <div class="metrics-cards">
+    <div class="metric-card">
+      <div class="metric-icon">⚙️</div>
+      <div class="metric-body">
+        <div class="metric-label">CPU Usage</div>
+        <div class="metric-value">{{ cpuUsage | number:'1.0-1' }}%</div>
+        <div class="metric-subtitle">Load: {{ getLoadAvgDisplay() }}</div>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon">🧠</div>
+      <div class="metric-body">
+        <div class="metric-label">Memory Available</div>
+        <div class="metric-value">{{ memoryAvailable | number:'1.0-1' }} MB</div>
+        <div class="metric-subtitle">Total: {{ formatBytes(lastMonitorEvent?.memory?.total || 0, 1) }}</div>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon">🌡️</div>
+      <div class="metric-body">
+        <div class="metric-label">CPU Temp</div>
+        <div class="metric-value">{{ temperature | number:'1.0-1' }}°C</div>
+        <div class="metric-subtitle">Max: {{ lastMonitorEvent?.temperatureMax | number:'1.0-1' }}°C</div>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon">⏱️</div>
+      <div class="metric-body">
+        <div class="metric-label">Uptime</div>
+        <div class="metric-value" style="font-size: 18px;">{{ lastMonitorEvent?.uptime ? formatUptime(lastMonitorEvent.uptime) : '—' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Collapsible Mount Details -->
+  <div class="mount-details" *ngIf="showMountDetails && lastMonitorEvent?.fs?.length">
+    <div class="mount-details-content">
+      <div class="mount-grid">
+        <div class="mount-card" *ngFor="let mount of lastMonitorEvent.fs">
+          <div class="mount-header">
+            <div class="mount-icon">📁</div>
+            <div class="mount-info">
+              <div class="mount-path">{{ mount.mount }}</div>
+              <div class="mount-type">{{ mount.fs || 'Unknown' }}</div>
+            </div>
+          </div>
+          <div class="mount-stats">
+            <div class="mount-stat">
+              <span class="mount-label">Used</span>
+              <span class="mount-value">{{ mount.use }}%</span>
+            </div>
+            <div class="mount-stat">
+              <span class="mount-label">Size</span>
+              <span class="mount-value">{{ formatBytes(mount.size, 1) }}</span>
+            </div>
+            <div class="mount-stat">
+              <span class="mount-label">Available</span>
+              <span class="mount-value">{{ formatBytes(mount.size * (1 - mount.use/100), 1) }}</span>
+            </div>
+          </div>
+          <div class="mount-progress">
+            <div class="mount-progress-bar" [style.width.%]="mount.use" [class.warning]="mount.use > 80" [class.danger]="mount.use > 90"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-container">
+    <div class="chart-wrapper">
+      <div class="chart-header">
+        <h4>Memory Usage</h4>
+      </div>
+      <div class="chart-container">
+        <canvas id="mChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-wrapper">
+      <div class="chart-header">
+        <h4>CPU Usage History</h4>
+      </div>
+      <div class="chart-container">
+        <canvas id="cChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="system-metrics">
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon">💾</div>
+        <div class="metric-body">
+          <div class="metric-label">Disk Usage</div>
+          <div class="metric-value">{{ getDiskUsage() }}%</div>
+          <div class="metric-progress">
+            <div class="progress-bar" [style.width.%]="getDiskUsage()"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="metric-card">
+        <div class="metric-icon">⚡</div>
+        <div class="metric-body">
+          <div class="metric-label">Processes</div>
+          <div class="metric-value">{{ lastMonitorEvent?.processes?.running || 0 }}</div>
+          <div class="metric-subtitle">Running / {{ lastMonitorEvent?.processes?.all || 0 }} Total</div>
+        </div>
+      </div>
+      
+      <div class="metric-card">
+        <div class="metric-icon">🔋</div>
+        <div class="metric-body">
+          <div class="metric-label">Battery</div>
+          <div class="metric-value">{{ lastMonitorEvent?.battery?.percent || 'N/A' }}%</div>
+          <div class="metric-subtitle">{{ lastMonitorEvent?.battery?.ischarging ? 'Charging' : (lastMonitorEvent?.battery?.hasBattery ? 'Discharging' : 'No Battery') }}</div>
+        </div>
+      </div>
+      
+      <div class="metric-card">
+        <div class="metric-icon">📶</div>
+        <div class="metric-body">
+          <div class="metric-label">Network I/O</div>
+          <div class="metric-value">{{ networkRx | number:'1.1-1' }} ↓ / {{ networkTx | number:'1.1-1' }} ↑</div>
+          <div class="metric-subtitle">KB/s</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="details-panel">
+    <div class="details-header">
+      <h3>System Details</h3>
+      <button class="btn" (click)="showRawData = !showRawData">
+        {{ showRawData ? 'Hide Raw Data' : 'Show Raw Data' }}
+      </button>
+    </div>
+    
+    <div class="details-grid">
+      <!-- First Row: Hardware and Software Info -->
+      <div class="details-col">
+        <h4>Hardware Info</h4>
+        <table class="details-table">
+          <tr><td>CPU Model</td><td>{{ cpuType }}</td></tr>
+          <tr><td>Cores</td><td>{{ noOfCpu }}</td></tr>
+          <tr><td>Speed</td><td>{{ lastMonitorEvent?.cpuSpeed?.avg ? (lastMonitorEvent.cpuSpeed.avg + ' GHz') : '—' }}</td></tr>
+          <tr><td>Memory Type</td><td>{{ lastConnectionInfo?.osInfo?.arch || '—' }}</td></tr>
+          <tr><td>Graphics</td><td>{{ lastMonitorEvent?.graphics?.controllers?.[0]?.model || '—' }}</td></tr>
+        </table>
+      </div>
+      
+      <div class="details-col">
+        <h4>Software Info</h4>
+        <table class="details-table">
+          <tr><td>Hostname</td><td>{{ lastConnectionInfo?.hostname || '—' }}</td></tr>
+          <tr><td>Platform</td><td>{{ lastConnectionInfo?.osInfo?.platform || '—' }}</td></tr>
+          <tr><td>Distro</td><td>{{ lastConnectionInfo?.osInfo?.distro || '—' }}</td></tr>
+          <tr><td>Release</td><td>{{ lastConnectionInfo?.osInfo?.release || '—' }}</td></tr>
+          <tr><td>Kernel</td><td>{{ lastConnectionInfo?.osInfo?.kernel || '—' }}</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Second Row: Collapsible Storage -->
+    <div class="details-storage-row">
+      <div class="details-col storage-details">
+        <div class="storage-header-section">
+          <h4>Storage</h4>
+          <div class="storage-toggle" (click)="showStorageDetails = !showStorageDetails" *ngIf="lastMonitorEvent?.fs?.length">
+            <span class="toggle-text">{{ showStorageDetails ? 'Hide Details' : 'Show Details' }}</span>
+            <span class="toggle-icon">{{ showStorageDetails ? '▲' : '▼' }}</span>
+          </div>
+        </div>
+        <div class="storage-details-content" *ngIf="showStorageDetails">
+          <div class="storage-table">
+            <div class="storage-header">
+              <div class="storage-cell">Mount Point</div>
+              <div class="storage-cell">Filesystem</div>
+              <div class="storage-cell">Size</div>
+              <div class="storage-cell">Used</div>
+              <div class="storage-cell">Available</div>
+              <div class="storage-cell">Usage</div>
+            </div>
+            <div class="storage-row" *ngFor="let d of lastMonitorEvent?.fs">
+              <div class="storage-cell" (mouseenter)="addTooltipIfEllipsed($event, $event.target, d.mount)">
+                <div class="mount-point">{{ d.mount }}</div>
+              </div>
+              <div class="storage-cell" (mouseenter)="addTooltipIfEllipsed($event, $event.target, d.fs || 'Unknown')">
+                <div class="filesystem">{{ d.fs || 'Unknown' }}</div>
+              </div>
+              <div class="storage-cell" (mouseenter)="addTooltipIfEllipsed($event, $event.target, formatBytes(d.size, 1))">
+                <div class="size">{{ formatBytes(d.size, 1) }}</div>
+              </div>
+              <div class="storage-cell" (mouseenter)="addTooltipIfEllipsed($event, $event.target, formatBytes(d.size * (d.use/100), 1))">
+                <div class="used">{{ formatBytes(d.size * (d.use/100), 1) }}</div>
+              </div>
+              <div class="storage-cell" (mouseenter)="addTooltipIfEllipsed($event, $event.target, formatBytes(d.size * (1 - d.use/100), 1))">
+                <div class="available">{{ formatBytes(d.size * (1 - d.use/100), 1) }}</div>
+              </div>
+              <div class="storage-cell">
+                <div class="usage-cell">
+                  <div class="usage-bar">
+                    <div class="usage-fill" [style.width.%]="d.use"
+                         [class.warning]="d.use > 80"
+                         [class.danger]="d.use > 90"></div>
+                  </div>
+                  <span class="usage-text">{{ d.use }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="raw-json" *ngIf="showRawData">
+      <div class="json-container">
+        <div class="json-box">
+          <h4>Live Monitor Event</h4>
+          <pre>{{ lastMonitorEvent | json }}</pre>
+        </div>
+        <div class="json-box">
+          <h4>Connection Info</h4>
+          <pre>{{ lastConnectionInfo | json }}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  <router-outlet></router-outlet>
 </div>
-<router-outlet></router-outlet>

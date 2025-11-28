@@ -1,0 +1,23 @@
+# Development build for Node.js server with hot reload
+FROM node:20-alpine
+
+# Install dependencies
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies including dev dependencies for development
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Expose port 9500
+EXPOSE 9500
+
+# Start development server with nodemon for hot reload
+# Use --exec to handle TypeScript compilation properly with ES modules
+CMD ["npm", "run", "dev"]

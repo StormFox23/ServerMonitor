@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Angular 21 Client Service
+  client:
+    build:
+      context: ./Client
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - servermonitor-network
+    depends_on:
+      - server
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Node.js Server Service
+  server:
+    build:
+      context: ./Server
+      dockerfile: Dockerfile
+    ports:
+      - "9500:9500"
+    environment:
+      - NODE_ENV=production
+      - PORT=9500
+    restart: unless-stopped
+    networks:
+      - servermonitor-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:9500', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  servermonitor-network:
+    driver: bridge
