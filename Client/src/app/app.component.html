@@ -219,20 +219,20 @@
               <div class="storage-cell">Usage</div>
             </div>
             <div class="storage-row" *ngFor="let d of lastMonitorEvent?.fs">
-              <div class="storage-cell" (mouseenter)="addTooltipIfEllipsed($event, $event.target, d.mount)">
-                <div class="mount-point">{{ d.mount }}</div>
+              <div class="storage-cell">
+                <div class="mount-point" #mountPoint (mouseenter)="addTooltipIfEllipsed(mountPoint, d.mount)">{{ d.mount }}</div>
               </div>
-              <div class="storage-cell" (mouseenter)="addTooltipIfEllipsed($event, $event.target, d.fs || 'Unknown')">
-                <div class="filesystem">{{ d.fs || 'Unknown' }}</div>
+              <div class="storage-cell">
+                <div class="filesystem" #filesystem (mouseenter)="addTooltipIfEllipsed(filesystem, d.fs || 'Unknown')">{{ d.fs || 'Unknown' }}</div>
               </div>
-              <div class="storage-cell" (mouseenter)="addTooltipIfEllipsed($event, $event.target, formatBytes(d.size, 1))">
-                <div class="size">{{ formatBytes(d.size, 1) }}</div>
+              <div class="storage-cell">
+                <div class="size" #sizeEl (mouseenter)="addTooltipIfEllipsed(sizeEl, formatBytes(d.size, 1))">{{ formatBytes(d.size, 1) }}</div>
               </div>
-              <div class="storage-cell" (mouseenter)="addTooltipIfEllipsed($event, $event.target, formatBytes(d.size * (d.use/100), 1))">
-                <div class="used">{{ formatBytes(d.size * (d.use/100), 1) }}</div>
+              <div class="storage-cell">
+                <div class="used" #usedEl (mouseenter)="addTooltipIfEllipsed(usedEl, formatBytes(d.size * (d.use/100), 1))">{{ formatBytes(d.size * (d.use/100), 1) }}</div>
               </div>
-              <div class="storage-cell" (mouseenter)="addTooltipIfEllipsed($event, $event.target, formatBytes(d.size * (1 - d.use/100), 1))">
-                <div class="available">{{ formatBytes(d.size * (1 - d.use/100), 1) }}</div>
+              <div class="storage-cell">
+                <div class="available" #availableEl (mouseenter)="addTooltipIfEllipsed(availableEl, formatBytes(d.size * (1 - d.use/100), 1))">{{ formatBytes(d.size * (1 - d.use/100), 1) }}</div>
               </div>
               <div class="storage-cell">
                 <div class="usage-cell">

@@ -422,18 +422,15 @@ export class AppComponent implements OnInit, OnDestroy {
       this.cpuChart.update('none');
     }
   }
-    isTextEllipsed(element: HTMLElement): boolean {
-      return element.scrollWidth > element.clientWidth;
-    }
-  
-    addTooltipIfEllipsed(event: MouseEvent, element: EventTarget | null, text: string): void {
-      // Convert EventTarget to HTMLElement if possible
-      const htmlElement = element as HTMLElement;
-      if (htmlElement && this.isTextEllipsed(htmlElement)) {
-        htmlElement.setAttribute('title', text);
-      } else if (htmlElement) {
-        htmlElement.removeAttribute('title');
-      }
-    }
+  isTextEllipsed(element: HTMLElement): boolean {
+    return element.scrollWidth > element.clientWidth;
   }
 
+  addTooltipIfEllipsed(element: HTMLElement | null, text: string): void {
+    if (element && this.isTextEllipsed(element)) {
+      element.setAttribute('title', text);
+    } else if (element) {
+      element.removeAttribute('title');
+    }
+  }
+}

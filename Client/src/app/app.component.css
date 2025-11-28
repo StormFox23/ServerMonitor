@@ -278,7 +278,7 @@
   gap: 16px;
   align-items: center;
   box-shadow: var(--shadow-md);
-  transition: all var(--transition) cubic-bezier(0.4, 0, 0.2, 1);
+  transition: box-shadow var(--transition), background-color var(--transition), border-color var(--transition);
   border: 1px solid var(--border);
   position: relative;
   overflow: hidden;
@@ -287,8 +287,9 @@
 /* Removed the ::before pseudo-element that was causing the border flashing effect */
 
 .metric-card:hover {
-  transform: translateY(-5px);
   box-shadow: var(--shadow-lg);
+  background: var(--surface-hover);
+  border-color: var(--primary-light);
 }
 
 /* Remove the border color change and before pseudo-element animation to prevent flashing */
@@ -853,37 +854,41 @@
   text-align: right;
 }
 
-/* Tooltip styles */
-.storage-cell[title] {
+.storage-cell [title] {
   position: relative;
   cursor: help;
 }
 
-.storage-cell[title]:hover::after {
+.storage-cell [title]:hover::after {
   content: attr(title);
   position: absolute;
   bottom: 100%;
   left: 50%;
-  transform: translateX(-50%);
-  background: var(--bg);
+  transform: translateX(-50%) translateY(-4px);
+  background: linear-gradient(135deg, var(--surface) 0%, var(--bg-secondary) 100%);
   color: var(--text);
-  padding: 8px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-lg);
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18), 0 6px 12px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(8px);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
   font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  white-space: normal;
+  word-break: break-word;
   z-index: 1000;
   pointer-events: none;
   opacity: 0;
-  transition: opacity var(--transition), transform var(--transition);
+  transition: opacity var(--transition), transform var(--transition), box-shadow var(--transition);
   margin-bottom: 8px;
   max-width: 300px;
-  word-wrap: break-word;
+  text-align: left;
 }
 
-.storage-cell[title]:hover::before {
+.storage-cell [title]:hover::before {
   content: '';
   position: absolute;
   bottom: 100%;
@@ -893,25 +898,26 @@
   height: 0;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
-  border-top: 6px solid var(--border);
+  border-top: 6px solid rgba(0, 0, 0, 0.08);
   z-index: 1000;
   pointer-events: none;
   margin-bottom: 2px;
 }
 
-.storage-cell[title]:hover::after {
+.storage-cell [title]:hover::after {
   opacity: 1;
   transform: translateX(-50%) translateY(-8px);
 }
 
-.dark-theme .storage-cell[title]:hover::after {
+.dark-theme .storage-cell [title]:hover::after {
   background: var(--surface);
   color: var(--text);
-  border-color: var(--border);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4), 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
-.dark-theme .storage-cell[title]:hover::before {
-  border-top-color: var(--border);
+.dark-theme .storage-cell [title]:hover::before {
+  border-top-color: rgba(255, 255, 255, 0.08);
 }
 
 .system-metrics {
